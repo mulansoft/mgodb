@@ -1,17 +1,17 @@
 package mgodb
 
 import (
+	"errors"
 	"os"
+	"reflect"
+	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-
-	"errors"
-	. "game/utils"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"reflect"
-	"strings"
+
+	. "github.com/mulansoft/mgodb/utils"
 )
 
 type Database struct {
