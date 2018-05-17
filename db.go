@@ -394,11 +394,6 @@ func validateModel(model interface{}) error {
 		return ErrModelToPtr
 	}
 
-	// model must implement CollectionName() function
-	if fun := val.MethodByName("CollectionName"); !fun.IsValid() {
-		return ErrCollectionNameIsNil
-	}
-
 	return nil
 }
 
@@ -408,15 +403,6 @@ func validateSlice(result interface{}) error {
 	val := reflect.ValueOf(result)
 	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Slice {
 		return ErrResultNotSliceAddr
-	}
-
-	// model must implement CollectionName() function
-	val = reflect.Indirect(val)
-	typ := val.Type().Elem()
-	modelVal := reflect.New(typ)
-	modelVal = reflect.Indirect(modelVal)
-	if fun := modelVal.MethodByName("CollectionName"); !fun.IsValid() {
-		return ErrCollectionNameIsNil
 	}
 
 	return nil
@@ -429,8 +415,7 @@ func getCollectionName(obj interface{}) string {
 	if val.Elem().Kind() == reflect.Slice {
 		val = reflect.Indirect(val)
 		typ := val.Type().Elem()
-		modelVal = reflect.New(typ)
-		modelVal = reflect.Indirect(modelVal)
+		modelVal = reflect.ValueOf(typ)
 	} else {
 		modelVal = val
 	}
@@ -444,7 +429,7 @@ func getCollectionName(obj interface{}) string {
 
 	// 如果没有定义表名，默认使用model类型名作表名
 	// 比如ClubMsg，默认表名为club_msg
-	return snakeString(reflect.Indirect(val).Type().Name())
+	return snakeString(reflect.Indirect(modelVal).Type().Name())
 }
 
 // snake string, XxYy to xx_yy , XxYY to xx_yy
