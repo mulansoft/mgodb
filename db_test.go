@@ -43,17 +43,17 @@ type CarOwner struct {
 	Owners  []Owner `bson:"owners,omitempty"`
 }
 
-func (c *Car) CollectionName() string {
-	return CAR_COLLECTION
-}
+//func (c *Car) CollectionName() string {
+//	return CAR_COLLECTION
+//}
 
-func (o *Owner) CollectionName() string {
-	return OWNER_COLLECTION
-}
-
-func (co *CarOwner) CollectionName() string {
-	return CAR_OWNER_COLLECTION
-}
+//func (o *Owner) CollectionName() string {
+//	return OWNER_COLLECTION
+//}
+//
+//func (co *CarOwner) CollectionName() string {
+//	return CAR_OWNER_COLLECTION
+//}
 
 func NewCar() *Car {
 	obj := &Car{CarId: getUUID()}
@@ -124,7 +124,7 @@ func TestAggregate(t *testing.T) {
 		bson.M{"$match": bson.M{"ownerId": owner.OwnerId}},
 		bson.M{
 			"$lookup": bson.M{
-				"from":         car.CollectionName(),
+				"from":         "car",
 				"localField":   "carId",
 				"foreignField": "carId",
 				"as":           "cars",
@@ -132,7 +132,7 @@ func TestAggregate(t *testing.T) {
 		},
 		bson.M{
 			"$lookup": bson.M{
-				"from":         owner.CollectionName(),
+				"from":         "owner",
 				"localField":   "ownerId",
 				"foreignField": "ownerId",
 				"as":           "owners",
