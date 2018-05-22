@@ -125,7 +125,11 @@ func FindOne(model interface{}, query interface{}) error {
 	err := Execute(func(sess *mgo.Session) error {
 		return sess.DB("").C(collection).Find(query).One(model)
 	})
-	if err != nil && err != mgo.ErrNotFound {
+	if err != nil && err == mgo.ErrNotFound {
+		return nil
+	}
+
+	if err != nil {
 		log.WithFields(log.Fields{
 			"model":      model,
 			"query":      query,
