@@ -235,3 +235,9 @@ func throwFail(t *testing.T, err error) {
 		t.Fail()
 	}
 }
+
+func TestDropDatabase(t *testing.T) {
+	initDatabase()
+	TestUpsertOne(t)
+	db.DropDatabase()
+}

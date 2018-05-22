@@ -449,3 +449,17 @@ func snakeString(s string) string {
 	}
 	return strings.ToLower(string(data[:]))
 }
+
+func DropDatabase() error {
+	err := Execute(func(sess *mgo.Session) error {
+		return sess.DB("").DropDatabase()
+	})
+	if err != nil && err != mgo.ErrNotFound {
+		log.WithFields(log.Fields{
+			"err":        err,
+		}).Error("DropDatabase error: database operate fail")
+		return err
+	}
+
+	return err
+}
