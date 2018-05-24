@@ -413,18 +413,17 @@ func validateSlice(result interface{}) error {
 }
 
 // 获取数据表名称
-func getCollectionName(obj interface{}) string {
-	var modelVal reflect.Value
-	val := reflect.ValueOf(obj)
-	if val.Elem().Kind() == reflect.Slice {
-		val = reflect.Indirect(val)
-		typ := val.Type().Elem()
-		modelVal = reflect.ValueOf(typ)
+func getCollectionName(data interface{}) string {
+	var typ reflect.Type
+	val := reflect.ValueOf(data)
+	if reflect.Indirect(val).Kind() == reflect.Slice {
+		typ = reflect.Indirect(val).Type().Elem()
+		val = reflect.Indirect(reflect.New(typ))
 	} else {
-		modelVal = val
+		typ = val.Type()
 	}
 
-	if fun := modelVal.MethodByName("CollectionName"); fun.IsValid() {
+	if fun := val.MethodByName("CollectionName"); fun.IsValid() {
 		vals := fun.Call([]reflect.Value{})
 		if len(vals) > 0 && vals[0].Kind() == reflect.String {
 			return vals[0].String()
@@ -433,7 +432,7 @@ func getCollectionName(obj interface{}) string {
 
 	// 如果没有定义表名，默认使用model类型名作表名
 	// 比如ClubMsg，默认表名为club_msg
-	return snakeString(reflect.Indirect(modelVal).Type().Name())
+	return snakeString(typ.Elem().Name())
 }
 
 // snake string, XxYy to xx_yy , XxYY to xx_yy
