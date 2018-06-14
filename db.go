@@ -62,11 +62,9 @@ func Execute(f func(sess *mgo.Session) error) error {
 }
 
 var (
-	ErrModelNotPtr         = errors.New("model is not pointer")
-	ErrModelToPtr          = errors.New("model point to another pointer")
-	ErrCollectionNameIsNil = errors.New("model doesn't has collection name")
-	ErrResultNotSliceAddr  = errors.New("result argument must be a slice address")
-	ErrOperateFail         = errors.New("database operate fail")
+	ErrModelNotPtr        = errors.New("model is not pointer")
+	ErrModelToPtr         = errors.New("model point to another pointer")
+	ErrResultNotSliceAddr = errors.New("result argument must be a slice address")
 )
 
 // insert one record
@@ -104,7 +102,49 @@ func Insert(model interface{}) error {
 		return err
 	}
 
-	return err
+	return nil
+}
+
+// insert many records
+// for example:
+// data := []*User{user1, user2, user3}
+// InsertMany(data)
+func InsertMany(docs []interface{}) error {
+	if err := validateSlice(&docs); err != nil {
+		log.WithFields(log.Fields{
+			"docs": docs,
+			"err":  err,
+		}).Error("insert db error: docs invalid")
+		return err
+	}
+
+	val := reflect.ValueOf(docs)
+	for i := 0; i < val.Len(); i++ {
+		model := val.Index(i).Interface()
+		updatedField := reflect.ValueOf(model).Elem().FieldByName("Updated")
+		if updatedField.CanSet() {
+			updatedField.Set(reflect.ValueOf(time.Now().UTC()))
+		}
+		createdField := reflect.ValueOf(model).Elem().FieldByName("Created")
+		if createdField.CanSet() {
+			createdField.Set(reflect.ValueOf(time.Now().UTC()))
+		}
+	}
+
+	collection := getCollectionName(docs[0])
+	err := Execute(func(sess *mgo.Session) error {
+		return sess.DB("").C(collection).Insert(docs...)
+	})
+	if err != nil {
+		log.WithFields(log.Fields{
+			"docs":       docs,
+			"collection": collection,
+			"err":        err,
+		}).Error("insert db error: database operate fail")
+		return err
+	}
+
+	return nil
 }
 
 // find one record

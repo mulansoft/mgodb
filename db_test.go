@@ -16,12 +16,6 @@ import (
 	db "github.com/mulansoft/mgodb"
 )
 
-const (
-	CAR_COLLECTION       = "car"
-	OWNER_COLLECTION     = "owner"
-	CAR_OWNER_COLLECTION = "car_owner"
-)
-
 type Car struct {
 	CarId   int64       `json:"carId" bson:"carId"`
 	Name    string      `json:"name" bson:"name"`
@@ -42,18 +36,6 @@ type CarOwner struct {
 	Cars    []Car   `bson:"cars,omitempty"`
 	Owners  []Owner `bson:"owners,omitempty"`
 }
-
-//func (c *Car) CollectionName() string {
-//	return CAR_COLLECTION
-//}
-
-//func (o *Owner) CollectionName() string {
-//	return OWNER_COLLECTION
-//}
-//
-//func (co *CarOwner) CollectionName() string {
-//	return CAR_OWNER_COLLECTION
-//}
 
 func NewCar() *Car {
 	obj := &Car{CarId: getUUID()}
@@ -140,8 +122,9 @@ func TestAggregate(t *testing.T) {
 		},
 	}
 	resp := []*CarOwner{}
+	collection := "car_owner"
 	err := db.Execute(func(sess *mgo.Session) error {
-		return sess.DB("").C(CAR_OWNER_COLLECTION).Pipe(pipeline).All(&resp)
+		return sess.DB("").C(collection).Pipe(pipeline).All(&resp)
 	})
 	fmt.Println(err)
 
@@ -226,6 +209,37 @@ func TestUpsertOne(t *testing.T) {
 	car.Price = 150
 	err = db.UpsertOne(car, bson.M{"carId": car.CarId})
 	throwFail(t, err)
+}
+
+func TestInsertMany(t *testing.T) {
+	initDatabase()
+
+	c1 := &Car{
+		CarId: getUUID(),
+		Name:  "c1",
+		Price: 100000,
+	}
+	c2 := &Car{
+		CarId: getUUID(),
+		Name:  "c2",
+		Price: 20000,
+	}
+	c3 := &Car{
+		CarId: getUUID(),
+		Name:  "c3",
+		Price: 30000,
+	}
+
+	docs := []interface{}{c1, c2, c3}
+	err := db.InsertMany(docs)
+	throwFail(t, err)
+
+	query := bson.M{"name": "c3"}
+	c3 = new(Car)
+	err = db.FindOne(c3, query)
+	if err != nil || c3.CarId == 0 {
+		throwFail(t, err)
+	}
 }
 
 func throwFail(t *testing.T, err error) {
