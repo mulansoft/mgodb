@@ -193,11 +193,6 @@ func UpdateOne(model interface{}, selector interface{}, update interface{}) erro
 		return err
 	}
 
-	updatedField := reflect.ValueOf(model).Elem().FieldByName("Updated")
-	if updatedField.CanSet() {
-		updatedField.Set(reflect.ValueOf(time.Now().UTC()))
-	}
-
 	collection := getCollectionName(model)
 	err := Execute(func(sess *mgo.Session) error {
 		return sess.DB("").C(collection).Update(selector, update)
@@ -228,6 +223,11 @@ func UpsertOne(model interface{}, selector interface{}) error {
 			"err":      err,
 		}).Error("upsert db error: validate model fail")
 		return err
+	}
+
+	updatedField := reflect.ValueOf(model).Elem().FieldByName("Updated")
+	if updatedField.CanSet() {
+		updatedField.Set(reflect.ValueOf(time.Now().UTC()))
 	}
 
 	update := bson.M{"$set": model}

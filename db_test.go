@@ -22,7 +22,7 @@ type Car struct {
 	Price   int         `json:"price" bson:"price"`
 	Remark  interface{} `json:"remark" bson:"remark"`
 	Updated time.Time   `json:"updated" bson:"updated"`
-	Created time.Time   `json:"created" bson:"Created"`
+	Created time.Time   `json:"created" bson:"created"`
 }
 
 type Owner struct {
@@ -196,19 +196,33 @@ func TestCRUD(t *testing.T) {
 
 func TestUpsertOne(t *testing.T) {
 	initDatabase()
+	carName := "宝马X5"
 
-	car := NewCar()
-	car.CarId = getUUID()
-	car.Name = "宝马X5"
-	car.Price = 100
-	err := db.UpsertOne(car, bson.M{"carId": car.CarId})
+	car1 := NewCar()
+	car1.CarId = getUUID()
+	car1.Name = carName
+	car1.Price = 100
+	err := db.UpsertOne(car1, bson.M{"name": carName})
 	throwFail(t, err)
 
-	time.Sleep(5 * time.Second)
-
-	car.Price = 150
-	err = db.UpsertOne(car, bson.M{"carId": car.CarId})
+	car2 := NewCar()
+	car2.CarId = getUUID()
+	car2.Name = carName
+	car2.Price = 150
+	err = db.UpsertOne(car2, bson.M{"name": carName})
 	throwFail(t, err)
+
+	car3 := NewCar()
+	car3.CarId = getUUID()
+	car3.Name = carName
+	car3.Price = 1250
+	err = db.UpsertOne(car3, bson.M{"name": carName})
+	throwFail(t, err)
+
+	count := db.Count(&Car{}, bson.M{"name": carName})
+	if count != 1 {
+		t.Error("TestUpsertOne error")
+	}
 }
 
 func TestInsertMany(t *testing.T) {
