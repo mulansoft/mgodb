@@ -11,6 +11,7 @@ import (
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
+	"github.com/fatih/structs"
 	. "github.com/mulansoft/mgodb/utils"
 )
 
@@ -230,7 +231,15 @@ func UpsertOne(model interface{}, selector interface{}) error {
 		return err
 	}
 
-	update := bson.M{"$set": model}
+	// Convert a struct to a map[string]interface{}
+	structs.DefaultTagName = "bson"
+	data := structs.Map(model)
+	for k := range data {
+		if k == "id" || strings.Contains(k, "Id") || k == "created" || k == "updated" {
+			delete(data, k)
+		}
+	}
+	update := bson.M{"$set": data}
 	err := UpdateOne(model, selector, update)
 	if err == mgo.ErrNotFound {
 		err = Insert(model)
