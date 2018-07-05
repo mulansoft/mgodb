@@ -417,6 +417,31 @@ func UpdateAll(model interface{}, selector interface{}, update interface{}) (int
 	return count, err
 }
 
+func Aggregate(result interface{}, piplines interface{}) error {
+	if err := validateSlice(result); err != nil {
+		log.WithFields(log.Fields{
+			"result":   result,
+			"piplines": piplines,
+			"err":      err,
+		}).Error("aggregate db error: validate model fail")
+		return err
+	}
+
+	collection := getCollectionName(result)
+	err := Execute(func(sess *mgo.Session) error {
+		return sess.DB("").C(collection).Pipe(piplines).All(result)
+	})
+	if err != nil && err != mgo.ErrNotFound {
+		log.WithFields(log.Fields{
+			"result":   result,
+			"piplines": piplines,
+			"err":      err,
+		}).Error("aggregate db error: database operate fail")
+	}
+
+	return err
+}
+
 func validateModel(model interface{}) error {
 	val := reflect.ValueOf(model)
 	typ := reflect.Indirect(val).Type()

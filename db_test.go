@@ -121,12 +121,11 @@ func TestAggregate(t *testing.T) {
 			},
 		},
 	}
-	resp := []*CarOwner{}
-	collection := "car_owner"
-	err := db.Execute(func(sess *mgo.Session) error {
-		return sess.DB("").C(collection).Pipe(pipeline).All(&resp)
-	})
-	fmt.Println(err)
+	resp := make([]*CarOwner, 0)
+	err := db.Aggregate(&resp, pipeline)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// print resp
 	for _, item := range resp {
