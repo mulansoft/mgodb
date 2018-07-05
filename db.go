@@ -197,11 +197,6 @@ func UpdateOne(model interface{}, selector interface{}, update interface{}) erro
 		return err
 	}
 
-	updatedField := reflect.ValueOf(model).Elem().FieldByName("Updated")
-	if updatedField.CanSet() {
-		updatedField.Set(reflect.ValueOf(time.Now().UTC()))
-	}
-
 	collection := getCollectionName(model)
 	err := Execute(func(sess *mgo.Session) error {
 		return sess.DB("").C(collection).Update(selector, update)
@@ -232,6 +227,11 @@ func UpsertOne(model interface{}, selector interface{}) error {
 			"err":      err,
 		}).Error("upsert db error: validate model fail")
 		return err
+	}
+
+	updatedField := reflect.ValueOf(model).Elem().FieldByName("Updated")
+	if updatedField.CanSet() {
+		updatedField.Set(reflect.ValueOf(time.Now().UTC()))
 	}
 
 	update := bson.M{"$set": model}
@@ -421,6 +421,31 @@ func UpdateAll(model interface{}, selector interface{}, update interface{}) (int
 	return count, err
 }
 
+func Aggregate(result interface{}, piplines interface{}) error {
+	if err := validateSlice(result); err != nil {
+		log.WithFields(log.Fields{
+			"result":   result,
+			"piplines": piplines,
+			"err":      err,
+		}).Error("aggregate db error: validate model fail")
+		return err
+	}
+
+	collection := getCollectionName(result)
+	err := Execute(func(sess *mgo.Session) error {
+		return sess.DB("").C(collection).Pipe(piplines).All(result)
+	})
+	if err != nil && err != mgo.ErrNotFound {
+		log.WithFields(log.Fields{
+			"result":   result,
+			"piplines": piplines,
+			"err":      err,
+		}).Error("aggregate db error: database operate fail")
+	}
+
+	return err
+}
+
 func validateModel(model interface{}) error {
 	val := reflect.ValueOf(model)
 	typ := reflect.Indirect(val).Type()
@@ -499,7 +524,7 @@ func DropDatabase() error {
 	})
 	if err != nil && err != mgo.ErrNotFound {
 		log.WithFields(log.Fields{
-			"err":        err,
+			"err": err,
 		}).Error("DropDatabase error: database operate fail")
 		return err
 	}
