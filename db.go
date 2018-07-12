@@ -29,7 +29,7 @@ func (db *Database) Init(addr string, concurrent int, timeout time.Duration) {
 	}
 
 	// set params
-	sess.SetMode(mgo.Strong, true)
+	sess.SetMode(mgo.Eventual, true)
 	sess.SetSocketTimeout(timeout)
 	sess.SetCursorTimeout(0)
 	db.session = sess
