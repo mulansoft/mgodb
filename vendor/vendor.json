@@ -3,10 +3,16 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "EXTgr18s2tlxwaOjaZXMw75R6Bc=",
+			"checksumSHA1": "QZUvloxC1gbLNb1HDvvKlqz3oEs=",
 			"path": "github.com/Sirupsen/logrus",
-			"revision": "778f2e774c725116edbc3d039dc0dfc1cc62aae8",
-			"revisionTime": "2018-03-29T22:59:52Z"
+			"revision": "9b3cdde74fbe9443d704467498a7dcb61a79de9b",
+			"revisionTime": "2019-04-03T09:10:19Z"
+		},
+		{
+			"checksumSHA1": "Aulh7C5SVOA4Jzt5eHNH6197Mbk=",
+			"path": "github.com/konsorten/go-windows-terminal-sequences",
+			"revision": "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e",
+			"revisionTime": "2019-02-26T22:47:05Z"
 		},
 		{
 			"checksumSHA1": "BGm8lKZmvJbf/YOJLeL1rw2WVjA=",
@@ -15,10 +21,10 @@
 			"revisionTime": "2018-04-11T15:42:50Z"
 		},
 		{
-			"checksumSHA1": "w3+nQnIha/VwmYfqIKnTPwDSBzo=",
+			"checksumSHA1": "tVYxUJ9V+T+4HcmGA3zTDX9KetU=",
 			"path": "golang.org/x/sys/unix",
-			"revision": "2281fa97ef7b0c26324634d5a22f04babdac8713",
-			"revisionTime": "2018-04-13T14:10:16Z"
+			"revision": "97732733099d6a942a73b889770774366de963ed",
+			"revisionTime": "2019-04-05T06:12:26Z"
 		},
 		{
 			"checksumSHA1": "Dfz4tGItokMvHZENCsBmPPB8FGQ=",
