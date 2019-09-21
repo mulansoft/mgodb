@@ -4,22 +4,32 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"math/rand"
 	"os"
 	"testing"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
 	db "github.com/mulansoft/mgodb"
 )
 
-type Car struct {
+type MinCar struct {
 	CarId   int64       `json:"carId" bson:"carId"`
 	Name    string      `json:"name" bson:"name"`
 	Price   int         `json:"price" bson:"price"`
+}
+
+func (m MinCar) CollectionName() string {
+	return "car"
+}
+
+type Car struct {
+	MinCar `json:",inline" bson:",inline"`
 	Remark  interface{} `json:"remark" bson:"remark"`
 	Updated time.Time   `json:"updated" bson:"updated"`
 	Created time.Time   `json:"created" bson:"created"`
@@ -38,7 +48,8 @@ type CarOwner struct {
 }
 
 func NewCar() *Car {
-	obj := &Car{CarId: getUUID()}
+	obj := new(Car)
+	obj.CarId = getUUID()
 	return obj
 }
 
@@ -133,6 +144,16 @@ func TestAggregate(t *testing.T) {
 	}
 }
 
+
+func TestGetCollectionName(t *testing.T) {
+	name := "car"
+	assert.Equal(t, name, db.GetCollectionName(new(Car)))
+	assert.Equal(t, name, db.GetCollectionName(new(MinCar)))
+	assert.Equal(t, name, db.GetCollectionName([]Car{}))
+	assert.Equal(t, name, db.GetCollectionName(make([]Car, 0)))
+	assert.Equal(t, name, db.GetCollectionName(make([]MinCar, 0)))
+}
+
 func TestCRUD(t *testing.T) {
 	initDatabase()
 
@@ -178,10 +199,15 @@ func TestCRUD(t *testing.T) {
 	t.Logf("upsert result: %v", car5)
 
 	// 分页功能
-	result := []*Car{}
+	result := make([]Car, 0)
 	err = db.Find(&result, bson.M{}, 1, 10, []string{"-created"})
 	throwFail(t, err)
 	t.Logf("search result: %v", result)
+	minCars := make([]MinCar, 0)
+	err = db.Find(&minCars, bson.M{}, 1, 10, []string{})
+	assert.Equal(t, nil, err)
+	assert.NotEqual(t, 0, len(minCars))
+	t.Logf("minCars: %v", minCars)
 
 	// 删除功能
 	car3 := NewCar()
@@ -227,21 +253,18 @@ func TestUpsertOne(t *testing.T) {
 func TestInsertMany(t *testing.T) {
 	initDatabase()
 
-	c1 := &Car{
-		CarId: getUUID(),
-		Name:  "c1",
-		Price: 100000,
-	}
-	c2 := &Car{
-		CarId: getUUID(),
-		Name:  "c2",
-		Price: 20000,
-	}
-	c3 := &Car{
-		CarId: getUUID(),
-		Name:  "c3",
-		Price: 30000,
-	}
+	c1 := new(Car)
+	c1.CarId = getUUID()
+	c1.Name = "c1"
+	c1.Price = 100000
+	c2 := new(Car)
+	c2.CarId = getUUID()
+	c2.Name = "c2"
+	c2.Price = 20000
+	c3 := new(Car)
+	c3.CarId = getUUID()
+	c3.Name = "c3"
+	c3.Price = 30000
 
 	docs := []interface{}{c1, c2, c3}
 	err := db.InsertMany(docs)

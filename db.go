@@ -89,7 +89,7 @@ func Insert(model interface{}) error {
 		createdField.Set(reflect.ValueOf(time.Now().UTC()))
 	}
 
-	collection := getCollectionName(model)
+	collection := GetCollectionName(model)
 	err := Execute(func(sess *mgo.Session) error {
 		return sess.DB("").C(collection).Insert(model)
 	})
@@ -131,7 +131,7 @@ func InsertMany(docs []interface{}) error {
 		}
 	}
 
-	collection := getCollectionName(docs[0])
+	collection := GetCollectionName(docs[0])
 	err := Execute(func(sess *mgo.Session) error {
 		return sess.DB("").C(collection).Insert(docs...)
 	})
@@ -161,7 +161,7 @@ func FindOne(model interface{}, query interface{}) error {
 		return err
 	}
 
-	collection := getCollectionName(model)
+	collection := GetCollectionName(model)
 	err := Execute(func(sess *mgo.Session) error {
 		return sess.DB("").C(collection).Find(query).One(model)
 	})
@@ -197,7 +197,7 @@ func UpdateOne(model interface{}, selector interface{}, update interface{}) erro
 		return err
 	}
 
-	collection := getCollectionName(model)
+	collection := GetCollectionName(model)
 	err := Execute(func(sess *mgo.Session) error {
 		return sess.DB("").C(collection).Update(selector, update)
 	})
@@ -264,7 +264,7 @@ func RemoveOne(model interface{}, selector interface{}) error {
 		return err
 	}
 
-	collection := getCollectionName(model)
+	collection := GetCollectionName(model)
 	err := Execute(func(sess *mgo.Session) error {
 		return sess.DB("").C(collection).Remove(selector)
 	})
@@ -294,7 +294,7 @@ func RemoveAll(model interface{}, selector interface{}) error {
 		return err
 	}
 
-	collection := getCollectionName(model)
+	collection := GetCollectionName(model)
 	err := Execute(func(sess *mgo.Session) error {
 		_, err := sess.DB("").C(collection).RemoveAll(selector)
 		return err
@@ -324,7 +324,7 @@ func Find(result interface{}, query interface{}, page int, pageSize int, sorts [
 		return err
 	}
 
-	collection := getCollectionName(result)
+	collection := GetCollectionName(result)
 	skip := (page - 1) * pageSize
 	err := Execute(func(sess *mgo.Session) error {
 		if page < 0 && pageSize < 0 {
@@ -361,7 +361,7 @@ func Count(model interface{}, query interface{}) int {
 	}
 
 	count := 0
-	collection := getCollectionName(model)
+	collection := GetCollectionName(model)
 	err := Execute(func(sess *mgo.Session) (err error) {
 		count, err = sess.DB("").C(collection).Find(query).Count()
 		return err
@@ -399,7 +399,7 @@ func UpdateAll(model interface{}, selector interface{}, update interface{}) (int
 	}
 
 	count := 0
-	collection := getCollectionName(model)
+	collection := GetCollectionName(model)
 	err := Execute(func(sess *mgo.Session) error {
 		info, err := sess.DB("").C(collection).UpdateAll(selector, update)
 		if !IsNil(info) {
@@ -431,7 +431,7 @@ func Aggregate(result interface{}, piplines interface{}) error {
 		return err
 	}
 
-	collection := getCollectionName(result)
+	collection := GetCollectionName(result)
 	err := Execute(func(sess *mgo.Session) error {
 		return sess.DB("").C(collection).Pipe(piplines).All(result)
 	})
@@ -478,7 +478,7 @@ func validateSlice(result interface{}) error {
 }
 
 // 获取数据表名称
-func getCollectionName(data interface{}) string {
+func GetCollectionName(data interface{}) string {
 	var typ reflect.Type
 	val := reflect.ValueOf(data)
 	if reflect.Indirect(val).Kind() == reflect.Slice {
