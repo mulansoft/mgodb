@@ -35,6 +35,15 @@ type Car struct {
 	Created time.Time   `json:"created" bson:"created"`
 }
 
+type CarOverview struct {
+	Car `json:",inline" bson:",inline"`
+	TotalPrice int `json:"totalPrice" bson:"totalPrice"`
+}
+
+func (m *CarOverview) CollectionName() string {
+	return "car"
+}
+
 type Owner struct {
 	OwnerId int64  `json:"ownerId" bson:"ownerId"`
 	Name    string `json:"name" bson:"name"`
@@ -144,6 +153,37 @@ func TestAggregate(t *testing.T) {
 	}
 }
 
+func TestAggregate2(t *testing.T) {
+	initDatabase()
+	// new car
+	car := new(Car)
+	car.CarId = 6330682874475319296
+	car.Name = "本田思域"
+	car.Price = 120000
+	db.Insert(car)
+
+	// aggregate
+	pipeline := []bson.M{
+		{"$match": bson.M{"name": car.Name}},
+		{
+			"$group": bson.M{
+				"_id":        "",
+				"totalPrice":   bson.M{"$sum": "$price"},
+			},
+		},
+	}
+	resp := make([]*CarOverview, 0)
+	err := db.Aggregate(&resp, pipeline)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(resp)
+
+	for _, item := range resp {
+		t.Log("total price: ", item.TotalPrice)
+	}
+}
 
 func TestGetCollectionName(t *testing.T) {
 	name := "car"
@@ -199,7 +239,7 @@ func TestCRUD(t *testing.T) {
 	t.Logf("upsert result: %v", car5)
 
 	// 分页功能
-	result := make([]Car, 0)
+	result := []Car{}
 	err = db.Find(&result, bson.M{}, 1, 10, []string{"-created"})
 	throwFail(t, err)
 	t.Logf("search result: %v", result)
